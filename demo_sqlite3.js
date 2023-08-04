@@ -1,4 +1,5 @@
 var sqlite3 = require("sqlite3").verbose();
+var fs = require("fs");
 
 var db_name = "mcu.db";
 var db = new sqlite3.Database(db_name);
@@ -33,23 +34,28 @@ insert into hero_power (hero_id, hero_power)
 db.exec(create_table_script, (err) => {
   if (!err) {
     console.log("Table created.");
-    db.all(
-      `select hero_name, is_xman, was_snapped from hero h
-       inner join hero_power hp on h.hero_id = hp.hero_id
-       where hero_power = ?`,
-      "Total Nerd",
-      (err, rows) => {
-        // console.log(rows);
-        rows.forEach((row) => {
-          console.log(
-            row.hero_name + "\t" + row.is_xman + "\t" + row.was_snapped
-          );
-        });
-      }
-    );
   } else if (err) {
     console.log("Getting error " + err);
   }
 });
 
-db.close();
+db.all(
+  `select hero_name, is_xman, was_snapped from hero h
+   inner join hero_power hp on h.hero_id = hp.hero_id
+   where hero_power = ?`,
+  "Total Nerd",
+  (err, rows) => {
+    // console.log(rows);
+    rows.forEach((row) => {
+      console.log(row.hero_name + "\t" + row.is_xman + "\t" + row.was_snapped);
+    });
+  }
+);
+
+db.close((err) => {
+  if (err) throw err;
+  fs.unlink(db_name, function (err) {
+    if (err) throw err;
+    console.log("File deleted!");
+  });
+});
